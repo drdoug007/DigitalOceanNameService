@@ -19,7 +19,7 @@ public class DigitalOceanNameServiceApplication {
         SpringApplication.run(DigitalOceanNameServiceApplication.class, args);
     }
 
-    @Scheduled(fixedRate = 60*1000)
+    @Scheduled(fixedRate = 10*60*1000)
     void execute(){
         nameService.checkName();
     }

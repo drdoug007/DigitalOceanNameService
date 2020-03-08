@@ -40,18 +40,24 @@ public class DigitalOceanNameService {
         log.info("CheckName: "+dnsName+"."+domainName);
         Map<String, String> uriParams = new HashMap<>();
         uriParams.put("domainName", domainName);
-        ResponseEntity<String> res = restTemplate.exchange("/v2/domains/{domainName}/records", HttpMethod.GET, null,
-                String.class, uriParams);
+
         ObjectMapper mapper = new ObjectMapper();
         try {
-            DomainRecordList recordList = mapper.readValue(res.getBody(), DomainRecordList.class);
+            ResponseEntity<String> res = restTemplate.exchange("/v2/domains/{domainName}/records", HttpMethod.GET, null,
+                    String.class, uriParams);
+            if (res.getStatusCode().is2xxSuccessful()){
+                DomainRecordList recordList = mapper.readValue(res.getBody(), DomainRecordList.class);
 
-            Optional<DomainRecord> chaamRec = recordList.getDomainRecords().stream().filter(r -> r.getName().equals(dnsName)).findFirst();
-            if (chaamRec.isPresent()){
-                updateRecord(uriParams, chaamRec);
+                Optional<DomainRecord> chaamRec = recordList.getDomainRecords().stream().filter(r -> r.getName().equals(dnsName)).findFirst();
+                if (chaamRec.isPresent()){
+                    updateRecord(uriParams, chaamRec);
+                } else {
+                    createNewRecord(uriParams);
+                }
             } else {
-                createNewRecord(uriParams);
+                log.error("getDomain Response Code: "+res.getStatusCode().name());
             }
+
         } catch (JsonProcessingException ex) {
             ex.printStackTrace();
         }
